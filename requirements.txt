@@ -2,3 +2,4 @@ requests==2.32.3
 beautifulsoup4==4.12.3
 pandas==2.2.2
 openpyxl
+snowflake-connector-python==3.12.0
