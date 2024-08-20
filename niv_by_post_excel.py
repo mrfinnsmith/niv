@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import datetime
 import re
 import pandas as pd
+from snowflake.connector.pandas_tools import write_pandas
 
 def log_all_links(url):
     # Specify the parser to use
@@ -58,8 +59,28 @@ def log_all_links(url):
         
         df = df[~df['POST'].str.strip().str.lower().eq('grand total')]
 
-        # Proceed with data processing if columns are found
-        print(df.head())
+    conn = snowflake.connector.connect(
+        user=os.getenv('SNOWFLAKE_USER'),
+        password=os.getenv('SNOWFLAKE_PASSWORD'),
+        account=os.getenv('SNOWFLAKE_ACCOUNT'),
+        warehouse=os.getenv('SNOWFLAKE_WAREHOUSE'),
+        database=os.getenv('SNOWFLAKE_DATABASE'),
+        schema=os.getenv('SNOWFLAKE_SCHEMA')
+    )
+
+    cursor = conn.cursor()
+
+    table_name = os.getenv('SNOWFLAKE_TABLE')
+
+    for index, row in df.iterrows():
+        sql = f"""INSERT INTO {table_name} (POST, VISA_CLASS, ISSUANCES, DATE)
+          VALUES (%s, %s, %s, %s)"""
+        
+        cursor.execute(sql, (row['POST'], row['VISA_CLASS'], row['ISSUANCES'], row['DATE']))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
 
 # URL to be passed to the function
 url = "https://travel.state.gov/content/travel/en/legal/visa-law0/visa-statistics/nonimmigrant-visa-statistics/monthly-nonimmigrant-visa-issuances.html"
