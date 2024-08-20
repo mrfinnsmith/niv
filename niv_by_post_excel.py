@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import datetime
 import re
 import pandas as pd
+import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
 
 def log_all_links(url):
@@ -72,11 +73,7 @@ def log_all_links(url):
 
     table_name = os.getenv('SNOWFLAKE_TABLE')
 
-    for index, row in df.iterrows():
-        sql = f"""INSERT INTO {table_name} (POST, VISA_CLASS, ISSUANCES, DATE)
-          VALUES (%s, %s, %s, %s)"""
-        
-        cursor.execute(sql, (row['POST'], row['VISA_CLASS'], row['ISSUANCES'], row['DATE']))
+    success, num_chunks, num_rows, output = write_pandas(conn, df, table_name)
 
     conn.commit()
     cursor.close()
