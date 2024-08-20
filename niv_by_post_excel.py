@@ -5,6 +5,8 @@ import re
 import pandas as pd
 import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
+from dotenv import load_dotenv
+import os
 
 def log_all_links(url):
     # Specify the parser to use
