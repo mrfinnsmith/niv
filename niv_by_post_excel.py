@@ -44,13 +44,13 @@ def log_all_links(url):
         # Normalize column names
         df.columns = df.columns.str.upper().str.strip().str.replace("'", "").str.replace(" ", "_")
 
-        print("\n".join(df.columns.tolist()))
-
         # Check if required columns are present
         required_columns = {'POST', 'VISA_CLASS', 'ISSUANCES'}
         if not required_columns.issubset(set(df.columns)):
             print("Required columns are missing.")
             return
+        
+        df['DATE'] = latest_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         
         # Proceed with data processing if columns are found
         print(df.head())
