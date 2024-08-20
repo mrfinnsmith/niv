@@ -50,6 +50,10 @@ def log_all_links(url):
             print("Required columns are missing.")
             return
         
+        df['POST'] = df['POST'].str.strip()
+        df['VISA_CLASS'] = df['VISA_CLASS'].str.strip()
+        df['ISSUANCES'] = df['ISSUANCES'].str.replace(',', '').astype(int)
+        
         df['DATE'] = latest_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         
         # Proceed with data processing if columns are found
