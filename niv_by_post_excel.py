@@ -71,10 +71,17 @@ def log_all_links(url):
     )
 
     cursor = conn.cursor()
+    table_name = os.getenv('SNOWFLAKE_TABLE')
+    cursor.execute(f"SELECT MAX(DATE) FROM {table_name}")
+    max_date_in_snowflake = cursor.fetchone()[0]
 
-    table_name = os.environ.get('SNOWFLAKE_TABLE')
+    if latest_date.date() > max_date_in_snowflake:
+        success, num_chunks, num_rows, output = write_pandas(conn, df, table_name)
+        print(f"Inserted {num_rows} new rows into the table.")
+    
+    else:
+        print("No new data to insert.")
 
-    success, num_chunks, num_rows, output = write_pandas(conn, df, table_name)
 
     conn.commit()
     cursor.close()
