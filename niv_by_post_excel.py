@@ -57,7 +57,7 @@ def log_all_links(url):
         df['VISA_CLASS'] = df['VISA_CLASS'].str.strip()
         df['ISSUANCES'] = df['ISSUANCES'].astype(str).str.replace(',', '').astype(int)
         
-        df['DATE'] = latest_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        df['DATE'] = latest_date.replace(day=1).date()
         
         df = df[~df['POST'].str.strip().str.lower().eq('grand total')]
 
