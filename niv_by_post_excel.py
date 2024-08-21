@@ -5,7 +5,6 @@ import re
 import pandas as pd
 import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
-from dotenv import load_dotenv
 import os
 
 def log_all_links(url):
@@ -63,17 +62,17 @@ def log_all_links(url):
         df = df[~df['POST'].str.strip().str.lower().eq('grand total')]
 
     conn = snowflake.connector.connect(
-        user=os.getenv('SNOWFLAKE_USER'),
-        password=os.getenv('SNOWFLAKE_PASSWORD'),
-        account=os.getenv('SNOWFLAKE_ACCOUNT'),
-        warehouse=os.getenv('SNOWFLAKE_WAREHOUSE'),
-        database=os.getenv('SNOWFLAKE_DATABASE'),
-        schema=os.getenv('SNOWFLAKE_SCHEMA')
+        user=os.environ.get('SNOWFLAKE_USER'),
+        password=os.environ.get('SNOWFLAKE_PASSWORD'),
+        account=os.environ.get('SNOWFLAKE_ACCOUNT'),
+        warehouse=os.environ.get('SNOWFLAKE_WAREHOUSE'),
+        database=os.environ.get('SNOWFLAKE_DATABASE'),
+        schema=os.environ.get('SNOWFLAKE_SCHEMA')
     )
 
     cursor = conn.cursor()
 
-    table_name = os.getenv('SNOWFLAKE_TABLE')
+    table_name = os.environ.get('SNOWFLAKE_TABLE')
 
     success, num_chunks, num_rows, output = write_pandas(conn, df, table_name)
 
