@@ -32,6 +32,7 @@ def parse_html_table(html):
 
     table_data = []
     current_date = datetime.now(pytz.timezone('America/New_York')).date()
+    logger.info(f"Current date: {current_date}")
     
     for row in table.find_all('tr')[1:]:
         cells = row.find_all('td')
