@@ -8,6 +8,7 @@ import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
 from dotenv import load_dotenv
 import traceback
+import pytz
 
 load_dotenv()
 
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 URL = "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html"
 
 def is_weekday():
-    # return datetime.now().weekday() < 5
+    # return datetime.now(pytz.timezone('America/New_York')).weekday() < 5
     return True
 
 def parse_html_table(html):
@@ -30,7 +31,7 @@ def parse_html_table(html):
     visa_types = headers[1:]
 
     table_data = []
-    current_date = datetime.now().date()
+    current_date = datetime.now(pytz.timezone('America/New_York')).date()
     
     for row in table.find_all('tr')[1:]:
         cells = row.find_all('td')
