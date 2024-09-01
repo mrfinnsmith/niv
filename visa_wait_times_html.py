@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 URL = "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html"
 
 def is_weekday():
-    return datetime.now().weekday() < 5
+    # return datetime.now().weekday() < 5
+    return True
 
 def parse_html_table(html):
     soup = BeautifulSoup(html, 'html.parser')
