@@ -1,1 +1,1 @@
-worker: python3 niv_by_post_excel.py && python3 visa_wait_times_html.py
+worker: python3 niv_by_post_excel.py && python3 visa_wait_times_html_raw.py
