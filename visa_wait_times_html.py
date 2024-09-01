@@ -18,8 +18,7 @@ logger = logging.getLogger(__name__)
 URL = "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html"
 
 def is_weekday():
-    # return datetime.now(pytz.timezone('America/New_York')).weekday() < 5
-    return True
+    return datetime.now(pytz.timezone('America/New_York')).weekday() < 5
 
 def parse_html_table(html):
     soup = BeautifulSoup(html, 'html.parser')
@@ -32,7 +31,6 @@ def parse_html_table(html):
 
     table_data = []
     current_date = datetime.now(pytz.timezone('America/New_York')).date()
-    logger.info(f"Current date: {current_date}")
     
     for row in table.find_all('tr')[1:]:
         cells = row.find_all('td')
