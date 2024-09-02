@@ -37,8 +37,8 @@ def parse_html_table(html):
         if cells:
             post = cells[0].text.strip()
             for j, cell in enumerate(cells[1:], 1):
-                appointment_wait_time = cell.text.strip()
-                if appointment_wait_time:
+                appointment_wait_time_raw = cell.text.strip()
+                if appointment_wait_time_raw:
                     visa_type = visa_types[j-1].replace('\xa0', ' ')
                     row_data = [
                         current_date,
