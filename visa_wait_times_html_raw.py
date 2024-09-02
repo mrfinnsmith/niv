@@ -90,9 +90,9 @@ def parse_appointment_wait_time(wait_time_raw):
     return int(days_match.group(1)) if days_match else None
 
 def determine_status(wait_time_raw, wait_time_days):
-    if wait_time_raw.lower() == 'same day' or (wait_time_days is not None and wait_time_days == 0):
-        return 'Same Day'
-    return 'Valid' if wait_time_days is not None else 'Invalid'
+    if wait_time_raw and (wait_time_days == '' or wait_time_days == 0):
+        return wait_time_raw
+    return ''
 
 def append_to_snowflake_raw(df, conn):
     cursor = conn.cursor()
