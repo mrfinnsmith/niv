@@ -79,8 +79,7 @@ def scrape_visa_wait_times():
 
     return None
 
-def append_to_snowflake_raw(df):
-    conn = get_snowflake_connection()
+def append_to_snowflake_raw(df, conn):
     cursor = conn.cursor()
     table_name = os.environ.get('SNOWFLAKE_VISA_WAIT_TIME_RAW_TABLE')
     
@@ -100,11 +99,14 @@ def append_to_snowflake_raw(df):
     
     finally:
         cursor.close()
-        conn.close()
 
 if __name__ == "__main__":
-    data_raw = scrape_visa_wait_times()
-    if data_raw is not None:
-        append_to_snowflake_raw(data_raw)
-    else:
-        logger.error("Failed to retrieve data.")
+    conn = get_snowflake_connection()
+    try:
+        data_raw = scrape_visa_wait_times()
+        if data_raw is not None:
+            append_to_snowflake_raw(data_raw, conn)
+        else:
+            logger.error("Failed to retrieve data.")
+    finally:
+        conn.close()
