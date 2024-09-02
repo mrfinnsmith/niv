@@ -71,7 +71,7 @@ def log_all_links(url):
     )
 
     cursor = conn.cursor()
-    table_name = os.getenv('SNOWFLAKE_TABLE')
+    table_name = os.getenv('VISAS_ISSUED_BY_POST_RAW')
     cursor.execute(f"SELECT MAX(DATE) FROM {table_name}")
     max_date_in_snowflake = cursor.fetchone()[0]
 
