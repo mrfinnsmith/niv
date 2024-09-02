@@ -32,7 +32,7 @@ def append_to_snowflake_raw(df, conn):
     cursor.execute(f"SELECT MAX(DATE) FROM {table_name}")
     max_date_in_snowflake = cursor.fetchone()[0]
 
-    if df['DATE'].max() > max_date_in_snowflake:
+    if max_date_in_snowflake is None or df['DATE'].max() > max_date_in_snowflake:
         success, num_chunks, num_rows, output = write_pandas(conn, df, table_name)
         print(f"Inserted {num_rows} new rows into the raw table.")
     else:
