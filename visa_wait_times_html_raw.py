@@ -9,6 +9,7 @@ from snowflake.connector.pandas_tools import write_pandas
 from dotenv import load_dotenv
 import traceback
 import pytz
+import re
 
 load_dotenv()
 
@@ -79,6 +80,20 @@ def scrape_visa_wait_times():
 
     return None
 
+def process_visa_type(visa_type):
+    return visa_type.replace('Interview Required', '').strip().replace('\xa0', ' ')
+
+def parse_appointment_wait_time(wait_time_raw):
+    if wait_time_raw.lower() == 'same day':
+        return 0
+    days_match = re.search(r'(\d+)\s*(day|days)', wait_time_raw, re.IGNORECASE)
+    return int(days_match.group(1)) if days_match else None
+
+def determine_status(wait_time_raw, wait_time_days):
+    if wait_time_raw.lower() == 'same day' or (wait_time_days is not None and wait_time_days == 0):
+        return 'Same Day'
+    return 'Valid' if wait_time_days is not None else 'Invalid'
+
 def append_to_snowflake_raw(df, conn):
     cursor = conn.cursor()
     table_name = os.environ.get('SNOWFLAKE_VISA_WAIT_TIME_RAW_TABLE')
@@ -100,12 +115,41 @@ def append_to_snowflake_raw(df, conn):
     finally:
         cursor.close()
 
+def append_to_snowflake_processed(df, conn):
+    cursor = conn.cursor()
+    table_name = os.environ.get('SNOWFLAKE_VISA_WAIT_TIME_TABLE')
+    
+    try:
+        cursor.execute(f"SELECT MAX(DATE) FROM {table_name}")
+        max_date = cursor.fetchone()[0]
+        
+        if max_date is None or df['DATE'].max() > max_date:
+            processed_df = df.copy()
+            processed_df['NONIMMIGRANT_VISA_TYPE'] = processed_df['NONIMMIGRANT_VISA_TYPE'].apply(process_visa_type)
+            processed_df['APPOINTMENT_WAIT_TIME'] = processed_df['APPOINTMENT_WAIT_TIME_RAW'].apply(parse_appointment_wait_time)
+            processed_df['STATUS'] = processed_df.apply(lambda row: determine_status(row['APPOINTMENT_WAIT_TIME_RAW'], row['APPOINTMENT_WAIT_TIME']), axis=1)
+            processed_df = processed_df.drop(columns=['APPOINTMENT_WAIT_TIME_RAW'])
+
+            success, num_chunks, num_rows, output = write_pandas(conn, processed_df, table_name)
+            logger.info(f"Inserted {num_rows} new rows into the not-raw table.")
+        else:
+            logger.info("No new data to insert into not-raw table.")
+    
+    except Exception as e:
+        logger.error(f"Error inserting data into Snowflake not-raw table: {e}")
+        print(f"Full error traceback:\n{traceback.format_exc()}")
+    
+    finally:
+        cursor.close()
+
+
 if __name__ == "__main__":
     conn = get_snowflake_connection()
     try:
         data_raw = scrape_visa_wait_times()
         if data_raw is not None:
             append_to_snowflake_raw(data_raw, conn)
+            append_to_snowflake_processed(data_raw, conn)
         else:
             logger.error("Failed to retrieve data.")
     finally:
