@@ -44,7 +44,7 @@ def parse_html_table(html):
                         current_date,
                         post,
                         visa_type,
-                        appointment_wait_time
+                        appointment_wait_time_raw
                     ]
                     table_data.append(row_data)
 
@@ -59,7 +59,7 @@ def scrape_visa_wait_times():
         response = requests.get(URL)
         response.raise_for_status()
         table_data = parse_html_table(response.text)
-        df = pd.DataFrame(table_data, columns=['DATE', 'POST', 'NONIMMIGRANT_VISA_TYPE', 'APPOINTMENT_WAIT_TIME'])
+        df = pd.DataFrame(table_data, columns=['DATE', 'POST', 'NONIMMIGRANT_VISA_TYPE', 'APPOINTMENT_WAIT_TIME_RAW'])
         return df
 
     except requests.RequestException as e:
