@@ -92,7 +92,9 @@ def log_all_links(url):
         
         df['DATE'] = latest_date.replace(day=1).date()
         
-        df = df[~df['NATIONALITY'].str.strip().str.lower().eq('grand total')]
+        if 'grand total' in df['NATIONALITY'].str.strip().str.lower().values:
+            df = df.loc[:df['NATIONALITY'].str.strip().str.lower().eq('grand total').idxmax() - 1]
+
         df = df.reset_index(drop=True)
         
         return df
