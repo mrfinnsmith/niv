@@ -17,6 +17,16 @@ logger = logging.getLogger(__name__)
 
 URL = "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/global-visa-wait-times.html"
 
+def get_snowflake_connection():
+    return snowflake.connector.connect(
+        user=os.environ.get('SNOWFLAKE_USER'),
+        password=os.environ.get('SNOWFLAKE_PASSWORD'),
+        account=os.environ.get('SNOWFLAKE_ACCOUNT'),
+        warehouse=os.environ.get('SNOWFLAKE_WAREHOUSE'),
+        database=os.environ.get('SNOWFLAKE_DATABASE'),
+        schema=os.environ.get('SNOWFLAKE_SCHEMA')
+    )
+
 def is_weekday():
     return datetime.now(pytz.timezone('America/New_York')).weekday() < 5
 
@@ -69,19 +79,10 @@ def scrape_visa_wait_times():
 
     return None
 
-def append_to_snowflake(df):
-
-    conn = snowflake.connector.connect(
-        user=os.environ.get('SNOWFLAKE_USER'),
-        password=os.environ.get('SNOWFLAKE_PASSWORD'),
-        account=os.environ.get('SNOWFLAKE_ACCOUNT'),
-        warehouse=os.environ.get('SNOWFLAKE_WAREHOUSE'),
-        database=os.environ.get('SNOWFLAKE_DATABASE'),
-        schema=os.environ.get('SNOWFLAKE_SCHEMA')
-    )
-    
+def append_to_snowflake_raw(df):
+    conn = get_snowflake_connection()
     cursor = conn.cursor()
-    table_name = os.environ.get('SNOWFLAKE_VISA_WAIT_TIME_TABLE')
+    table_name = os.environ.get('SNOWFLAKE_VISA_WAIT_TIME_RAW_TABLE')
     
     try:
         cursor.execute(f"SELECT MAX(DATE) FROM {table_name}")
@@ -89,12 +90,12 @@ def append_to_snowflake(df):
         
         if max_date is None or df['DATE'].max() > max_date:
             success, num_chunks, num_rows, output = write_pandas(conn, df, table_name)
-            logger.info(f"Inserted {num_rows} new rows into the table.")
+            logger.info(f"Inserted {num_rows} new rows into the raw table.")
         else:
-            logger.info("No new data to insert.")
+            logger.info("No new data to insert into raw table.")
     
     except Exception as e:
-        logger.error(f"Error inserting data into Snowflake: {e}")
+        logger.error(f"Error inserting data into Snowflake raw table: {e}")
         print(f"Full error traceback:\n{traceback.format_exc()}")
     
     finally:
@@ -102,8 +103,8 @@ def append_to_snowflake(df):
         conn.close()
 
 if __name__ == "__main__":
-    data = scrape_visa_wait_times()
-    if data is not None:
-        append_to_snowflake(data)
+    data_raw = scrape_visa_wait_times()
+    if data_raw is not None:
+        append_to_snowflake_raw(data_raw)
     else:
         logger.error("Failed to retrieve data.")
