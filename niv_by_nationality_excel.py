@@ -7,6 +7,15 @@ import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
 import os
 
+def clean_issuances(value):
+    str_value = str(value).replace(',', '')
+    if '.' in str_value:
+        if str_value.endswith('.0'):
+            return str_value[:-2]
+        else:
+            raise ValueError(f"Unexpected decimal value: {value}")
+    return str_value
+
 def get_snowflake_connection():
     return snowflake.connector.connect(
         user=os.environ.get('SNOWFLAKE_USER'),
@@ -73,11 +82,18 @@ def log_all_links(url):
         
         df['NATIONALITY'] = df['NATIONALITY'].str.strip()
         df['VISA_CLASS'] = df['VISA_CLASS'].str.strip()
-        df['ISSUANCES'] = df['ISSUANCES'].astype(str).str.replace(',', '').astype(int)
+        
+        try:
+            df['ISSUANCES'] = df['ISSUANCES'].apply(clean_issuances).astype(int)
+        except ValueError as e:
+            problematic_rows = df[df['ISSUANCES'].apply(lambda x: not str(x).replace(',', '').replace('.0', '').isdigit())]
+            print(f"Error processing rows: {problematic_rows.to_dict('records')}")
+            raise
         
         df['DATE'] = latest_date.replace(day=1).date()
         
         df = df[~df['NATIONALITY'].str.strip().str.lower().eq('grand total')]
+        df = df.reset_index(drop=True)
         
         return df
     
