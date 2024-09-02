@@ -73,12 +73,11 @@ def log_all_links(url):
         print("Here is the latest Excel link:", latest_excel_link)
         df = pd.read_excel(latest_excel_link, sheet_name='Sheet1', skiprows=1)
         
+        df.columns = df.columns.str.upper().str.strip().str.replace("'", "").str.replace(" ", "_")
+        
         if 'grand total' in df['NATIONALITY'].str.strip().str.lower().values:
             df = df.loc[:df['NATIONALITY'].str.strip().str.lower().eq('grand total').idxmax() - 1]
 
-
-        df.columns = df.columns.str.upper().str.strip().str.replace("'", "").str.replace(" ", "_")
-        
         required_columns = {'NATIONALITY', 'VISA_CLASS', 'ISSUANCES'}
         if not required_columns.issubset(set(df.columns)):
             print("Required columns are missing.")
