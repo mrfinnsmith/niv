@@ -90,7 +90,7 @@ def parse_appointment_wait_time(wait_time_raw):
     return int(days_match.group(1)) if days_match else None
 
 def determine_status(wait_time_raw, wait_time_days):
-    if wait_time_raw and (wait_time_days == '' or wait_time_days == 0):
+    if wait_time_raw and (wait_time_days is None or wait_time_days == '' or wait_time_days == 0):
         return wait_time_raw
     return ''
 
