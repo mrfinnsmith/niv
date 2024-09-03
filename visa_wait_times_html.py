@@ -101,7 +101,7 @@ def determine_status(wait_time_raw, wait_time_days):
     if wait_time_days == 0:
         logger.debug("Condition 'wait_time_days == 0' passed")
     
-    if wait_time_raw and (wait_time_days is None or wait_time_days == 0):
+    if wait_time_raw and (wait_time_days is None or pd.isna(wait_time_days) or wait_time_days == 0):
         return wait_time_raw
     return ''
 
