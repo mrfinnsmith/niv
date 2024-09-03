@@ -87,6 +87,8 @@ def parse_appointment_wait_time(wait_time_raw):
     if wait_time_raw.lower() == 'same day':
         return 0
     days_match = re.search(r'(\d+)\s*(day|days)', wait_time_raw, re.IGNORECASE)
+    if not days_match:
+        logger.debug(f"No number of days found in source data: '{wait_time_raw}'")
     return int(days_match.group(1)) if days_match else None
 
 def determine_status(wait_time_raw, wait_time_days):
